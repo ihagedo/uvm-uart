@@ -62,7 +62,7 @@ task uart_monitor::collect_data();
       // Sample data and calculate parity bit
       for(int i = 0; i < uart_config_h.number_data_bits; i++) begin
          #(bit_time);
-         mon_seqit.mon_data[i] <= vif.tx_dout_o;
+         mon_seqit.mon_data[i] = vif.tx_dout_o;
          parity ^= vif.tx_dout_o;
       end
       // Parity check
