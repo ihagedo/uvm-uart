@@ -28,7 +28,7 @@ class uart_driver extends uvm_driver #(uart_seqit);
         // Wait reset signal
         wait_reset();
         // Calculating bit per second
-        bit_time = (1 / real'(uart_config_h.baud_rate))*10**9;
+        bit_time = 1s / real'(uart_config_h.baud_rate);
         // Drive the interface
         forever  begin
            seq_item_port.get_next_item(req);
@@ -85,6 +85,8 @@ class uart_driver extends uvm_driver #(uart_seqit);
                    drive_if(1'b1);
                 end
             endcase
+            // Idle time between frames
+            repeat (uart_config_h.idle_bits) drive_if(1'b1);
         end
     endtask:drive_data
 

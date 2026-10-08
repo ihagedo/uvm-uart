@@ -11,6 +11,9 @@ class uart_config extends uvm_object;
     t_stop_bit stop_bit             = STOP_BIT_ONEBIT ;
     t_parity parity_bit             = PARITY_ODD      ;
     int baud_rate                   = 115_200         ;
+    // Idle (mark) bits the driver sends after each frame. The looped-back DUT
+    // has no FIFO, so back-to-back frames (0) can drop bytes; see README.
+    int idle_bits                   = 1               ;
 
     function new(string name = "uart_config");
        super.new(name);
