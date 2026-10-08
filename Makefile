@@ -36,7 +36,7 @@ wrap = $(shell command -v $(1) 2>/dev/null)
 
 ifeq ($(SIM),verilator)
   TOOL      := verilator
-  HINT      := module load conda-forge/26.3.2 && conda activate ~/.conda/envs/sb-uvm
+  HINT      := source env/setup.sh in uvm-training (or: module load conda-forge/26.3.2 && conda activate ~/.conda/envs/sb-uvm)
   BUILD_CMD := verilator --binary --timing --assert -j $(JOBS) --timescale 1ns/1ps -Wno-fatal -Wno-lint -Wno-style \
                $(if $(filter 1,$(WAVES)),--trace-fst) $(DEFS) $(INCS) $(UVM_HOME)/uvm_pkg.sv $(SRCS) \
                --top-module $(TOP) --Mdir $(BUILD)/obj -o Vtb
@@ -74,7 +74,10 @@ help:
 	@echo "e.g.   make run SIM=questa SEED=3"
 
 $(STAMP): $(DEPS)
-	@command -v $(TOOL) >/dev/null 2>&1 || { echo "$(TOOL) not found. Run: $(HINT)"; exit 1; }
+	@# /usr/local/cae/bin holds warning stubs, not simulators
+	@case "$$(command -v $(TOOL))" in ""|/usr/local/cae/bin/*) echo "$(TOOL) not found. Run: $(HINT)"; exit 1;; esac
+	$(if $(filter verilator,$(SIM)),@v=$$(verilator --version | awk '{print $$2}'); \
+	  [ "$$(printf '%s\n' 5.052 $$v | sort -V | head -1)" = 5.052 ] || { echo "verilator $$v is older than 5.052 (the version this course is tested with). Run: $(HINT)"; exit 1; })
 	@test -f "$(UVM_HOME)/uvm_pkg.sv" || { echo "UVM source not found. Clone uvm-training with --recurse-submodules, or set UVM_HOME=<UVM_Library>/src"; exit 1; }
 	@mkdir -p $(BUILD)
 	@echo "[build] $(SIM) -> $(BUILD)"
