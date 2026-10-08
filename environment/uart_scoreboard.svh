@@ -6,7 +6,7 @@ class uart_scoreboard extends uvm_scoreboard;
     `uvm_analysis_imp_decl(_observed)
     `uvm_analysis_imp_decl(_expected)
     uvm_analysis_imp_observed #(uart_seqit, uart_scoreboard) observed;
-    uvm_analysis_imp_observed #(uart_seqit, uart_scoreboard) expected;
+    uvm_analysis_imp_expected #(uart_seqit, uart_scoreboard) expected;
     uart_seqit expected_data[$];
     int number_of_err = 0, number_of_passed = 0;
   
@@ -32,6 +32,7 @@ class uart_scoreboard extends uvm_scoreboard;
     function new(string name, uvm_component parent = null);
       super.new(name, parent);
       observed = new("observed", this);
+      expected = new("expected", this);
     endfunction
 
     function void write_expected(uart_seqit tr);
@@ -44,9 +45,14 @@ class uart_scoreboard extends uvm_scoreboard;
     function void write_observed(uart_seqit tr);
 
       uart_seqit expected_seqit_h;
-      expected_seqit_h = uart_seqit::type_id::create("expected_seqit_h");
+      // A byte with nothing left to expect is an error, not a null handle
+      if (expected_data.size() == 0) begin
+        `uvm_error(get_type_name(), $sformatf("UNEXPECTED : monitored 0x%02h but no data is expected", tr.mon_data));
+        number_of_err++;
+        return;
+      end
       // Pop expected_seqit_h class which is injected from test
-      expected_seqit_h = expected_data.pop_front(); 
+      expected_seqit_h = expected_data.pop_front();
       // Print monitored data
       tr.print();
       // Print expected data
@@ -64,6 +70,10 @@ class uart_scoreboard extends uvm_scoreboard;
     function void check_phase(input uvm_phase phase);
       super.check_phase(phase);
 
+      // Every expected byte must have come out of the DUT
+      if (expected_data.size() > 0) begin
+        `uvm_error(get_type_name(), $sformatf("MISSING : %0d expected data never observed", expected_data.size()));
+      end
       if (number_of_err > 0) begin
         `uvm_error(get_type_name(), $sformatf("%0d data failed!", number_of_err));
       end else if (number_of_passed > 0) begin
