@@ -82,7 +82,7 @@
 `define LOG(__clk, __rstn, __en, __format_expr) \
   `ifndef SYNTHESIS \
     /* Optionally generate a hello message for each log statement with some details */ \
-    initial if(0) $display("[%0t] LOG:STARTING:%m:%s:%0d", $stime, `__FILE__, `__LINE__);*/ \
+    initial if(0) $display("[%0t] LOG:STARTING:%m:%s:%0d", $stime, `__FILE__, `__LINE__); \
     /* Signal logging statement */ \
     always @(posedge __clk, negedge __rstn) if((__rstn) & (__en)) \
     $display("[%0t] %m: %0s", $stime, $sformatf __format_expr); \
