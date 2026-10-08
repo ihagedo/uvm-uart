@@ -31,8 +31,11 @@ BUILD    := $(ROOT)/build/$(SIM)$(if $(filter 1,$(WAVES)),_waves)
 RUNDIR   := $(BUILD)/runs/$(TEST)_s$(SEED)
 STAMP    := $(BUILD)/.built
 
-# On CAE machines the commercial simulators only run inside these container wrappers
-wrap = $(shell command -v $(1) 2>/dev/null)
+# On CAE machines the commercial simulators only run inside these container wrappers.
+# The conda env's compilers (on PATH for Verilator) link against a newer glibc than the
+# containers have, so the wrappers get PATH without the conda env.
+CLEAN_PATH := $(if $(CONDA_PREFIX),$(subst $(CONDA_PREFIX)/bin:,,$(PATH)),$(PATH))
+wrap = $(if $(shell command -v $(1) 2>/dev/null),env PATH=$(CLEAN_PATH) $(1))
 
 ifeq ($(SIM),verilator)
   TOOL      := verilator
