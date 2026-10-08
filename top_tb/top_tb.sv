@@ -41,6 +41,15 @@ module top_tb;
 
    initial
    begin
+`ifdef WAVES
+      // make WAVES=1: FST on Verilator, VCD elsewhere
+`ifdef VERILATOR
+      $dumpfile("waves.fst");
+`else
+      $dumpfile("waves.vcd");
+`endif
+      $dumpvars(0, top_tb);
+`endif
       // Setting interfaces to uvm_config_db
       // config_db get is done in env_top class
       //ToDo do not globally set the vif to the config_db. Specify a location
